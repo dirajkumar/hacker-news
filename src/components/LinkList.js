@@ -18,13 +18,22 @@ class LinkList extends Component {
     const linksToRender = this.props.feedQuery.feed.links
     return (
       <Feed> 
-        {linksToRender.map(link => <Link key={link.id} link={link} />)} 
+        {linksToRender.map(link => <Link key={link.id} link={link} updateStoreAfterVote={this._updateCacheAfterVote} />)} 
       </Feed>
     );
   }
+
+  _updateStoreAfterVote = (store, createVote, linkId) => {
+    const data = store.readQuery({ query: FEED_QUERY });
+
+    const voteLink = data.feed.links.find(link => link.Id === linkId);
+    voteLink.votes = createVote.link.votes;
+
+    store.writeQuery({ query: FEED_QUERY, data });
+  } 
 }
 
-const FEED_QUERY = gql`
+export const FEED_QUERY = gql`
   query FeedQuery {
     feed {
       links {
@@ -34,6 +43,12 @@ const FEED_QUERY = gql`
         description
         postedBy {
           name
+        }
+        votes {
+          id
+          user {
+            id
+          }
         }
       }
     }
